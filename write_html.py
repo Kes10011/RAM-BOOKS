@@ -1,0 +1,362 @@
+﻿import os
+
+html = r'''<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ramsuresh Rampersad - Fantasy Author</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>
+  <style>
+    :root { --cyan: #00f0ff; --magenta: #ff00ff; --dark: #05070a; --glass: rgba(255,255,255,0.05); --glass-border: rgba(255,255,255,0.1); }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Rajdhani', sans-serif; background: var(--dark); color: #fff; overflow-x: hidden; min-height: 100vh; }
+    #particles-canvas { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events: none; z-index: 0; }
+    #welcome-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: radial-gradient(ellipse at center, #0a0f1e 0%, #000 100%); z-index: 1000; display: flex; align-items: center; justify-content: center; transition: opacity 1.2s ease, visibility 1.2s ease; cursor: pointer; overflow: hidden; }
+    #welcome-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+    #welcome-grid { position: absolute; top:0; left:0; width:100%; height:100%; background-image: linear-gradient(rgba(0,240,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(0,240,255,0.08) 1px, transparent 1px); background-size: 60px 60px; animation: gridMove 20s linear infinite; }
+    @keyframes gridMove { 0% { transform: translateY(0); } 100% { transform: translateY(60px); } }
+    .orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.4; animation: orbPulse 4s ease-in-out infinite; }
+    .orb-1 { width:300px; height:300px; background:var(--cyan); top:10%; left:10%; animation-delay:0s; }
+    .orb-2 { width:400px; height:400px; background:var(--magenta); bottom:10%; right:10%; animation-delay:2s; }
+    .orb-3 { width:250px; height:250px; background:#7000ff; top:50%; left:50%; transform:translate(-50%,-50%); animation-delay:1s; }
+    @keyframes orbPulse { 0%,100% { transform: scale(1); opacity:0.3; } 50% { transform: scale(1.3); opacity:0.6; } }
+    #welcome-content { position: relative; z-index: 2; text-align: center; max-width: 900px; padding: 20px; }
+    #welcome-title { font-family: 'Orbitron', sans-serif; font-size: clamp(1rem, 2.5vw, 1.6rem); color: var(--cyan); text-shadow: 0 0 20px var(--cyan), 0 0 40px var(--cyan); margin-bottom: 40px; line-height: 1.4; letter-spacing: 1px; }
+    #tv-container { width: 260px; height: 320px; margin: 0 auto 40px; position: relative; }
+    #tv-screen { position: absolute; top: 30px; left: 50%; transform: translateX(-50%); width: 180px; height: 130px; background: #111; border: 3px solid var(--cyan); border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 30px var(--cyan), inset 0 0 20px rgba(0,240,255,0.2); overflow: hidden; }
+    #tv-screen::before { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,240,255,0.05) 2px, rgba(0,240,255,0.05) 4px); pointer-events: none; }
+    #tv-text { font-family: 'Orbitron', sans-serif; font-size: 0.7rem; color: var(--cyan); text-align: center; padding: 10px; animation: tvFlicker 3s infinite; text-shadow: 0 0 10px var(--cyan); line-height: 1.3; }
+    @keyframes tvFlicker { 0%,100% { opacity:1; } 50% { opacity:0.85; } 52% { opacity:1; } 54% { opacity:0.7; } 56% { opacity:1; } }
+    #click-hint { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; color: #fff; letter-spacing: 3px; animation: hintPulse 2s ease-in-out infinite; text-transform: uppercase; }
+    @keyframes hintPulse { 0%,100% { opacity:0.5; transform: translateY(0); } 50% { opacity:1; transform: translateY(-5px); } }
+    #main-site { position: relative; z-index: 1; opacity: 0; transition: opacity 1.5s ease 0.5s; pointer-events: none; }
+    #main-site.visible { opacity: 1; pointer-events: all; }
+    .hero { position: relative; height: 100vh; min-height: 600px; display: flex; align-items: center; justify-content: center; text-align: center; background: url('Ram.png') center/cover no-repeat; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(180deg, rgba(5,7,10,0.3) 0%, rgba(5,7,10,0.95) 100%); z-index: 1; }
+    .hero-content { position: relative; z-index: 2; max-width: 900px; padding: 20px; }
+    .hero h1 { font-family: 'Orbitron', sans-serif; font-size: clamp(2rem, 6vw, 4.5rem); font-weight: 900; background: linear-gradient(135deg, var(--cyan), var(--magenta)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 20px; filter: drop-shadow(0 0 20px rgba(0,240,255,0.5)); }
+    .hero-subtitle { font-size: clamp(1rem, 2vw, 1.4rem); color: rgba(255,255,255,0.9); font-weight: 300; letter-spacing: 2px; text-transform: uppercase; }
+    .hero-subtitle span { color: var(--cyan); font-weight: 600; }
+    section { position: relative; padding: 100px 20px; z-index: 1; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    .section-title { font-family: 'Orbitron', sans-serif; font-size: clamp(1.5rem, 4vw, 2.5rem); text-align: center; margin-bottom: 60px; background: linear-gradient(90deg, var(--cyan), var(--magenta)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; position: relative; display: inline-block; width: 100%; }
+    .bio-panel { background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 50px; max-width: 900px; margin: 0 auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1); position: relative; overflow: hidden; }
+    .bio-panel::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: conic-gradient(from 0deg, transparent, var(--cyan), transparent, var(--magenta), transparent); animation: borderRotate 6s linear infinite; opacity: 0.1; pointer-events: none; }
+    @keyframes borderRotate { 100% { transform: rotate(360deg); } }
+    .bio-text { font-size: 1.1rem; line-height: 1.8; color: rgba(255,255,255,0.85); text-align: justify; position: relative; z-index: 1; }
+    .bio-link { display: inline-flex; align-items: center; gap: 10px; margin-top: 30px; padding: 14px 28px; background: linear-gradient(135deg, var(--cyan), var(--magenta)); color: #000; text-decoration: none; border-radius: 50px; font-weight: 700; font-size: 1rem; letter-spacing: 1px; transition: all 0.3s ease; position: relative; z-index: 1; text-transform: uppercase; font-family: 'Orbitron', sans-serif; }
+    .bio-link:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,240,255,0.4); }
+    .books-section { background: linear-gradient(180deg, transparent 0%, rgba(0,240,255,0.03) 50%, transparent 100%); }
+    .carousel-wrapper { position: relative; max-width: 1400px; margin: 0 auto; }
+    .carousel-container { overflow-x: auto; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; padding: 20px 10px 40px; scrollbar-width: none; cursor: grab; }
+    .carousel-container::-webkit-scrollbar { display: none; }
+    .carousel-track { display: flex; gap: 25px; width: max-content; }
+    .book-card { flex: 0 0 220px; background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 16px; overflow: hidden; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer; text-decoration: none; color: inherit; display: block; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+    .book-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--cyan), var(--magenta)); opacity: 0; transition: opacity 0.3s; }
+    .book-card:hover::before { opacity: 1; }
+    .book-card:hover { transform: translateY(-12px); border-color: var(--cyan); box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 30px rgba(0,240,255,0.3); }
+    .book-cover { width: 100%; height: 320px; object-fit: cover; display: block; border-bottom: 1px solid var(--glass-border); }
+    .book-info { padding: 18px 15px; }
+    .book-title { font-family: 'Orbitron', sans-serif; font-size: 0.85rem; font-weight: 700; color: #fff; margin-bottom: 10px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .book-link { font-size: 0.8rem; color: var(--cyan); text-decoration: none; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; transition: color 0.3s; display: inline-flex; align-items: center; gap: 5px; }
+    .book-link:hover { color: var(--magenta); }
+    .carousel-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 50px; height: 50px; background: var(--glass); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); border-radius: 50%; color: var(--cyan); font-size: 1.5rem; cursor: pointer; z-index: 10; transition: all 0.3s; display: flex; align-items: center; justify-content: center; font-family: 'Orbitron', sans-serif; }
+    .carousel-arrow:hover { background: var(--cyan); color: #000; box-shadow: 0 0 30px var(--cyan); border-color: var(--cyan); }
+    .carousel-arrow.prev { left: -15px; }
+    .carousel-arrow.next { right: -15px; }
+    .streak { position: fixed; width: 2px; height: 100px; background: linear-gradient(to bottom, transparent, var(--cyan), transparent); opacity: 0.3; pointer-events: none; z-index: 0; animation: streakMove 8s linear infinite; }
+    @keyframes streakMove { 0% { transform: translateY(-100vh) rotate(15deg); } 100% { transform: translateY(100vh) rotate(15deg); } }
+    footer { text-align: center; padding: 40px 20px; border-top: 1px solid var(--glass-border); color: rgba(255,255,255,0.4); font-size: 0.9rem; position: relative; z-index: 1; }
+    @media (max-width: 768px) {
+      .bio-panel { padding: 30px 25px; }
+      .book-card { flex: 0 0 180px; }
+      .book-cover { height: 260px; }
+      .carousel-arrow { width: 40px; height: 40px; font-size: 1.2rem; }
+      .carousel-arrow.prev { left: 5px; }
+      .carousel-arrow.next { right: 5px; }
+      section { padding: 60px 15px; }
+      #tv-container { width: 200px; height: 250px; }
+      #tv-screen { width: 140px; height: 100px; top: 25px; }
+      #tv-text { font-size: 0.6rem; }
+    }
+    @media (max-width: 480px) {
+      .book-card { flex: 0 0 160px; }
+      .book-cover { height: 220px; }
+      .book-info { padding: 12px 10px; }
+      .book-title { font-size: 0.75rem; }
+      .carousel-arrow { width: 35px; height: 35px; }
+      #welcome-title { font-size: 0.95rem; }
+      #click-hint { font-size: 0.7rem; letter-spacing: 2px; }
+      .hero h1 { font-size: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles-canvas"></canvas>
+  <div class="streak" style="left:10%; animation-duration:7s; animation-delay:0s;"></div>
+  <div class="streak" style="left:25%; animation-duration:9s; animation-delay:2s;"></div>
+  <div class="streak" style="left:50%; animation-duration:6s; animation-delay:4s;"></div>
+  <div class="streak" style="left:70%; animation-duration:8s; animation-delay:1s;"></div>
+  <div class="streak" style="left:90%; animation-duration:10s; animation-delay:3s;"></div>
+  <div id="welcome-overlay">
+    <div id="welcome-grid"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div id="welcome-content">
+      <h1 id="welcome-title">Welcome to Ramsuresh Books - Your Gateway to Immersive Fantasy Worlds</h1>
+      <div id="tv-container">
+        <div id="tv-screen">
+          <div id="tv-text">CLICK HERE TO<br>START READING</div>
+        </div>
+      </div>
+      <div id="click-hint">Click Anywhere to Enter</div>
+    </div>
+  </div>
+  <div id="main-site">
+    <section class="hero">
+      <div class="hero-content">
+        <h1>Ramsuresh Rampersad</h1>
+        <p class="hero-subtitle">Fantasy Author &amp; Therapist - <span>Crafting Immersive Worlds of Wonder</span></p>
+      </div>
+    </section>
+    <section id="about">
+      <div class="container">
+        <h2 class="section-title">About the Author</h2>
+        <div class="bio-panel">
+          <p class="bio-text">I am a therapist by profession. I attended BMCC and New York City College of Technology, where I placed second for a Charles Matusik Fiction Award for my piece &ldquo;The Snow Globe,&rdquo; an excerpt of which has been published in City Tech Writer, Volume 9 (2014). I have also taken Fiction Writing workshops and seminars as part of Columbia University&rsquo;s continuing education program, and have experimented with writing poetry, songs, short stories, and novels across different genres and styles.</p>
+          <a href="https://www.facebook.com/ramsuresh.rampersad" target="_blank" rel="noopener noreferrer" class="bio-link">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            Follow on Facebook
+          </a>
+        </div>
+      </div>
+    </section>
+    <section id="books" class="books-section">
+      <div class="container">
+        <h2 class="section-title">Explore the Books</h2>
+        <div class="carousel-wrapper">
+          <button class="carousel-arrow prev" id="prevBtn" aria-label="Previous">&#10094;</button>
+          <div class="carousel-container" id="carousel">
+            <div class="carousel-track" id="carousel-track"></div>
+          </div>
+          <button class="carousel-arrow next" id="nextBtn" aria-label="Next">&#10095;</button>
+        </div>
+      </div>
+    </section>
+    <footer>
+      &copy; <span id="year"></span> Ramsuresh Rampersad. All rights reserved.
+    </footer>
+  </div>
+  <script>
+    const books = [
+      { title: 'Shadows of Chaos', cover: 'https://m.media-amazon.com/images/I/81HJ5lBPEIL._SL1500_.jpg', url: 'https://www.amazon.com/Shadows-Chaos-Ramsuresh-Rampersad-ebook/dp/B0DJ1Q4JBK' },
+      { title: 'Tales of the Crimson Night', cover: 'https://m.media-amazon.com/images/I/81Cx4rtI-VL._SL1500_.jpg', url: 'https://www.amazon.com/Tales-Crimson-Night-Collection-Supernatural-ebook/dp/B0DFS4MLRD' },
+      { title: 'The Enchanted Garden Adventure', cover: 'https://m.media-amazon.com/images/I/81XS8m5TZ6L._SL1500_.jpg', url: 'https://www.amazon.com/Enchanted-Garden-Adventure-Ramsuresh-Rampersad-ebook/dp/B0D9HM8925' },
+      { title: 'Trading Love Stories', cover: 'https://m.media-amazon.com/images/I/719f0p4C0-L._SL1500_.jpg', url: 'https://www.amazon.com/Trading-Love-Stories-Ramsuresh-Rampersad-ebook/dp/B0DBBXNM7G' },
+      { title: 'Echoes of the Crimson Bell', cover: 'https://m.media-amazon.com/images/I/816bm0cMMxL._SL1500_.jpg', url: 'https://www.amazon.com/Echoes-Crimson-Bell-Ramsuresh-Rampersad-ebook/dp/B0DTFL4X16' },
+      { title: 'Ayodhyapolis', cover: 'https://m.media-amazon.com/images/I/81HC9Mzm-BL._SL1500_.jpg', url: 'https://www.amazon.com/Ayodhyapolis-Ramsuresh-Rampersad-ebook/dp/B0DP5FTS4F' },
+      { title: 'Lilly And The Enchanted Garden', cover: 'https://m.media-amazon.com/images/I/81jXHH1vT5L._SL1500_.jpg', url: 'https://www.amazon.com/Lilly-Enchanted-Garden-Ramsuresh-Rampersad-ebook/dp/B0D62DXGZK' },
+      { title: 'Max and the Time-Traveling Treehouse', cover: 'https://m.media-amazon.com/images/I/812Klq4ed9L._SL1500_.jpg', url: 'https://www.amazon.com/Max-Time-Traveling-Treehouse-Ramsuresh-Rampersad-ebook/dp/B0D9HKMDTM' },
+      { title: 'Tommy and the Friendly Dragon', cover: 'https://m.media-amazon.com/images/I/81BnP9AGWFL._SL1500_.jpg', url: 'https://www.amazon.com/Tommy-Friendly-Dragon-Ramsuresh-Rampersad-ebook/dp/B0D9K6HKQ7' },
+      { title: 'The Starlight Beacon and Other Tales', cover: 'https://m.media-amazon.com/images/I/81bYfhgl1KL._SL1500_.jpg', url: 'https://www.amazon.com/Starlight-Beacon-Other-Tales-ebook/dp/B0DTJHZCF2' },
+      { title: 'Echoes of Sirens', cover: 'https://m.media-amazon.com/images/I/81j8tCyyuiL._SL1500_.jpg', url: 'https://www.amazon.com/Echoes-Sirens-COVID-19-Diary-Covid-ebook/dp/B0D96HYVP2' },
+      { title: 'Ecos de Sirenas', cover: 'https://m.media-amazon.com/images/I/81uHx-djJyL._SL1500_.jpg', url: 'https://www.amazon.com/Ecos-Sirenas-Diario-COVID-19-Spanish-ebook/dp/B0D96NJNLZ' }
+    ];
+    const track = document.getElementById('carousel-track');
+    books.forEach(b => {
+      const card = document.createElement('a');
+      card.href = b.url;
+      card.target = '_blank';
+      card.rel = 'noopener noreferrer';
+      card.className = 'book-card';
+      card.innerHTML = '<img class="book-cover" src="' + b.cover + '" alt="' + b.title + '" loading="lazy"><div class="book-info"><div class="book-title">' + b.title + '</div><span class="book-link">View on Amazon &rarr;</span></div>';
+      track.appendChild(card);
+    });
+    const carousel = document.getElementById('carousel');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    function getScrollAmount() {
+      const card = track.querySelector('.book-card');
+      if (!card) return 300;
+      const cardWidth = card.offsetWidth;
+      const gap = 25;
+      return cardWidth + gap;
+    }
+    function scrollCarousel(direction) {
+      const amount = getScrollAmount();
+      if (direction === 'next') {
+        carousel.scrollBy({ left: amount, behavior: 'smooth' });
+      } else {
+        carousel.scrollBy({ left: -amount, behavior: 'smooth' });
+      }
+    }
+    prevBtn.addEventListener('click', () => scrollCarousel('prev'));
+    nextBtn.addEventListener('click', () => scrollCarousel('next'));
+    let autoScrollInterval;
+    function startAutoScroll() { autoScrollInterval = setInterval(() => scrollCarousel('next'), 3000); }
+    function stopAutoScroll() { clearInterval(autoScrollInterval); }
+    carousel.addEventListener('mouseenter', stopAutoScroll);
+    carousel.addEventListener('mouseleave', startAutoScroll);
+    carousel.addEventListener('touchstart', stopAutoScroll, { passive: true });
+    carousel.addEventListener('touchend', () => setTimeout(startAutoScroll, 2000));
+    startAutoScroll();
+    const overlay = document.getElementById('welcome-overlay');
+    const mainSite = document.getElementById('main-site');
+    function enterSite() {
+      overlay.classList.add('hidden');
+      setTimeout(() => { mainSite.classList.add('visible'); }, 300);
+    }
+    overlay.addEventListener('click', enterSite);
+    const tvContainer = document.getElementById('tv-container');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(50, tvContainer.offsetWidth / tvContainer.offsetHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    renderer.setSize(tvContainer.offsetWidth, tvContainer.offsetHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    tvContainer.insertBefore(renderer.domElement, tvContainer.firstChild);
+    const group = new THREE.Group();
+    scene.add(group);
+    const skinMat = new THREE.MeshPhongMaterial({ color: 0x3a2a1a, shininess: 30 });
+    const shirtMat = new THREE.MeshPhongMaterial({ color: 0x1a1a2e, shininess: 60 });
+    const tieMat = new THREE.MeshPhongMaterial({ color: 0xff0044, shininess: 80 });
+    const tvMat = new THREE.MeshPhongMaterial({ color: 0x111111, shininess: 100 });
+    const screenMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+    const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    const headGroup = new THREE.Group();
+    const tvBody = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.4, 1), tvMat);
+    headGroup.add(tvBody);
+    const screen = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 0.8), screenMat);
+    screen.position.set(0, 0.05, 0.51);
+    headGroup.add(screen);
+    const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), eyeMat);
+    eyeL.position.set(-0.35, 0.15, 0.52);
+    headGroup.add(eyeL);
+    const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), eyeMat);
+    eyeR.position.set(0.35, 0.15, 0.52);
+    headGroup.add(eyeR);
+    headGroup.position.y = 2.2;
+    group.add(headGroup);
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.3, 0.4, 8), skinMat);
+    neck.position.y = 1.6;
+    group.add(neck);
+    const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.6, 1.4, 8), shirtMat);
+    torso.position.y = 0.7;
+    group.add(torso);
+    const tieKnot = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.1), tieMat);
+    tieKnot.position.set(0, 1.2, 0.5);
+    group.add(tieKnot);
+    const tieBody = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.6, 4), tieMat);
+    tieBody.position.set(0, 0.85, 0.5);
+    group.add(tieBody);
+    const armGeom = new THREE.CylinderGeometry(0.15, 0.18, 1, 8);
+    const armL = new THREE.Mesh(armGeom, shirtMat);
+    armL.position.set(-0.75, 0.7, 0);
+    armL.rotation.z = 0.3;
+    group.add(armL);
+    const armR = new THREE.Mesh(armGeom, shirtMat);
+    armR.position.set(0.75, 0.7, 0);
+    armR.rotation.z = -0.3;
+    group.add(armR);
+    const legGeom = new THREE.CylinderGeometry(0.2, 0.22, 1.2, 8);
+    const legL = new THREE.Mesh(legGeom, new THREE.MeshPhongMaterial({ color: 0x222222 }));
+    legL.position.set(-0.3, -1, 0);
+    group.add(legL);
+    const legR = new THREE.Mesh(legGeom, new THREE.MeshPhongMaterial({ color: 0x222222 }));
+    legR.position.set(0.3, -1, 0);
+    group.add(legR);
+    const ambientLight = new THREE.AmbientLight(0x404040, 2);
+    scene.add(ambientLight);
+    const pointLight = new THREE.PointLight(0x00f0ff, 2, 20);
+    pointLight.position.set(3, 3, 3);
+    scene.add(pointLight);
+    const pointLight2 = new THREE.PointLight(0xff00ff, 1, 20);
+    pointLight2.position.set(-3, 2, -3);
+    scene.add(pointLight2);
+    camera.position.z = 5;
+    camera.position.y = 0.5;
+    let mouseX = 0, mouseY = 0, targetX = 0, targetY = 0;
+    document.addEventListener('mousemove', (e) => {
+      mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+      mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+    });
+    function animateThree() {
+      requestAnimationFrame(animateThree);
+      targetX += (mouseX - targetX) * 0.08;
+      targetY += (mouseY - targetY) * 0.08;
+      group.rotation.y = targetX * 0.8;
+      group.rotation.x = targetY * 0.3;
+      const t = Date.now() * 0.001;
+      group.position.y = Math.sin(t) * 0.05;
+      renderer.render(scene, camera);
+    }
+    animateThree();
+    const canvas = document.getElementById('particles-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    const PARTICLE_COUNT = 80;
+    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    class Particle {
+      constructor() { this.reset(); }
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.vx = (Math.random() - 0.5) * 0.5;
+        this.vy = (Math.random() - 0.5) * 0.5;
+        this.size = Math.random() * 2 + 0.5;
+        this.alpha = Math.random() * 0.5 + 0.1;
+        this.color = Math.random() > 0.5 ? '0, 240, 255' : '255, 0, 255';
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(' + this.color + ', ' + this.alpha + ')';
+        ctx.fill();
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = 'rgba(' + this.color + ', 0.5)';
+      }
+    }
+    for (let i = 0; i < PARTICLE_COUNT; i++) { particles.push(new Particle()); }
+    function connectParticles() {
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 120) {
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(0, 240, 255, ' + (0.1 * (1 - dist / 120)) + ')';
+            ctx.lineWidth = 0.5;
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+    }
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => { p.update(); p.draw(); });
+      connectParticles();
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+    document.getElementById('year').textContent = new Date().getFullYear();
+  <\/script>
+</body>
+</html>'''
+
+with open(r'C:\\Users\\Sessi\\Desktop\\ANTIGRAVITY\\RAMSURESH\\index.html', 'w', encoding='utf-8') as f:
+    f.write(html)
+print('Done')

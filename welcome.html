@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Welcome to Ramsuresh Books</title>
+<style>
+:root{
+  --bg:#020208;
+  --grid:#0ff1;
+  --cyan:#00fff0;
+  --magenta:#ff00e5;
+  --text:#e8f0ff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;
+  overflow:hidden;
+}
+.bg-grid{
+  position:fixed;inset:0;
+  background:
+    linear-gradient(transparent 95%, var(--grid) 96%),
+    linear-gradient(90deg, transparent 95%, var(--grid) 96%);
+  background-size:60px 60px;
+  opacity:.25;
+  animation:gridMove 30s linear infinite;
+}
+@keyframes gridMove{from{background-position:0 0}to{background-position:60px 60px}}
+.orbs{position:fixed;inset:0;overflow:hidden;pointer-events:none}
+.orb{
+  position:absolute;width:400px;height:400px;border-radius:50%;
+  filter:blur(100px);opacity:.15;mix-blend-mode:screen;animation:pulse 12s ease-in-out infinite;
+}
+.orb1{left:-100px;top:-100px;background:var(--cyan)}
+.orb2{right:-100px;bottom:-100px;background:var(--magenta)}
+.orb3{left:40%;top:60%;background:#7b2fff}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:.15}50%{transform:scale(1.2);opacity:.25}}
+.top-right{
+  position:absolute;top:28px;right:28px;
+  font-size:0.95rem;letter-spacing:.5px;
+  color:#cfe9ff;text-shadow:0 0 12px var(--cyan);
+  max-width:520px;text-align:right;line-height:1.4;
+}
+.figure{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  display:flex;flex-direction:column;align-items:center;gap:18px;
+}
+.head{
+  width:210px;height:160px;transform-origin:center;
+  transition:transform .08s linear;
+  filter:drop-shadow(0 0 30px var(--cyan));
+}
+.tv{
+  width:100%;height:100%;border:10px solid #0a0a0f;
+  border-radius:22px;box-shadow:
+    0 0 0 3px var(--cyan),0 0 40px var(--magenta),inset 0 0 30px #000;
+  position:relative;background:#000;
+}
+.tv::before{
+  content:'';position:absolute;left:14px;right:14px;top:14px;bottom:14px;
+  border:2px solid #111;
+}
+.screen{
+  position:absolute;inset:22px;
+  background:#020208;display:flex;align-items:center;justify-content:center;
+  text-align:center;cursor:pointer;
+  border-radius:12px;
+  box-shadow:inset 0 0 60px rgba(0,255,240,.08);
+  text-shadow:0 0 10px var(--cyan);
+}
+.screen span{
+  font-family:"Space Grotesk",Inter,sans-serif;font-weight:700;
+  font-size:18px;letter-spacing:2px;color:#aef;
+  animation:blink 1.8s steps(2,end) infinite;
+}
+@keyframes blink{0%,50%{opacity:1}51%,100%{opacity:.3}}
+.antenna{
+  position:absolute;top:-32px;left:50%;transform:translateX(-50%);
+  width:4px;height:28px;background:linear-gradient(var(--cyan),transparent);
+  box-shadow:0 0 12px var(--cyan);
+}
+.torso{
+  width:120px;height:160px;background:linear-gradient(180deg,#1a1f2e,#0b1020);
+  border-radius:60px 60px 40px 40px;
+  box-shadow:0 0 40px rgba(255,0,229,.25),inset 0 0 30px rgba(0,255,240,.08);
+  position:relative;
+}
+.tie{
+  position:absolute;left:50%;top:18px;transform:translateX(-50%);
+  width:24px;height:110px;background:linear-gradient(var(--magenta),var(--cyan));
+  clip-path:polygon(50% 0,100% 30%,100% 100%,0 100%,0 30%);
+  box-shadow:0 0 20px var(--magenta);
+}
+.glow{
+  position:absolute;inset:-80px;
+  background:radial-gradient(closest-side,rgba(0,255,240,.12),transparent);
+  filter:blur(40px);pointer-events:none;
+}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="orbs"><div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div></div>
+<div class="top-right">Welcome to Ramsuresh Books — Your Gateway to Immersive Fantasy Worlds</div>
+<div class="figure">
+  <div class="head" id="head">
+    <div class="tv">
+      <div class="antenna"></div>
+      <div class="screen" id="screen"><span>CLICK HERE TO START READING</span></div>
+    </div>
+  </div>
+  <div class="torso"><div class="tie"></div></div>
+</div>
+<div class="glow"></div>
+<script>
+const head = document.getElementById('head');
+const figure = document.querySelector('.figure');
+document.addEventListener('mousemove', e=>{
+  const r = figure.getBoundingClientRect();
+  const cx = r.left + r.width/2;
+  const cy = r.top + r.height/2;
+  const dx = e.clientX - cx;
+  const dy = e.clientY - cy;
+  const angle = Math.atan2(dy,dx) * 180/Math.PI;
+  head.style.transform = `rotate(${angle}deg)`;
+});
+document.getElementById('screen').addEventListener('click', ()=>{
+  window.location.href = 'index.html';
+});
+</script>
+</body>
+</html>
+
